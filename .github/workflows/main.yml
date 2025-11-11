@@ -54,7 +54,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         mkdir -p release
         cp "${{ steps.find_exe.outputs.exe_path }}" release/${{ steps.find_csproj.outputs.csproj_name }}.exe
-        git add release/${{ steps.find_csproj.outputs.csproj_name }}.exe
+        git add -f release/${{ steps.find_csproj.outputs.csproj_name }}.exe
         git diff --quiet && git diff --staged --quiet || git commit -m "Auto-build: Update release binary"
         git push
       shell: bash
