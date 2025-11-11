@@ -1,0 +1,59 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+    
+    - name: Restore NuGet packages
+      run: nuget restore
+    
+    - name: Build Release
+      run: msbuild sccm_audit.csproj /p:Configuration=Release /p:Platform="Any CPU" /m
+    
+    - name: Generate build timestamp
+      id: timestamp
+      run: echo "timestamp=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+      shell: bash
+    
+    - name: Commit binary to repo
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        mkdir -p release
+        cp bin/Release/sccm_audit.exe release/sccm_audit.exe
+        git add release/sccm_audit.exe
+        git diff --quiet && git diff --staged --quiet || git commit -m "Auto-build: Update release binary"
+        git push
+      shell: bash
+    
+    - name: Create/Update GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        name: Latest Build
+        body: |
+          Automated build from commit ${{ github.sha }}
+          Built on: ${{ steps.timestamp.outputs.timestamp }}
+        files: bin/Release/sccm_audit.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
