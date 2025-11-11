@@ -34,7 +34,7 @@ jobs:
       run: nuget restore "${{ steps.find_csproj.outputs.csproj_path }}"
     
     - name: Build Release
-      run: msbuild "${{ steps.find_csproj.outputs.csproj_path }}" /p:Configuration=Release /p:Platform="Any CPU" /m
+      run: msbuild "${{ steps.find_csproj.outputs.csproj_path }}" /p:Configuration=Release /p:Platform=AnyCPU /m
     
     - name: Find output exe
       id: find_exe
